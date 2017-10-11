@@ -57,8 +57,7 @@ RUN curl -L https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-
     && helm repo add logicmonitor https://logicmonitor.github.com/k8s-helm-charts
 
 # .bashrc
-RUN echo 'eval $(ssh-agent -s >/dev/null 2>&1)' >> ~/.bashrc \
-    && echo 'ssh-add ~/.kube/assets/ssh/id_rsa >/dev/null 2>&1' >> ~/.bashrc
+RUN echo '{ eval $(ssh-agent); ssh-add; ssh-add ~/.kube/assets/ssh/id_rsa; } &>/dev/null' >> ~/.bashrc
 
 RUN ln -fs /bin/bash /bin/sh
 
