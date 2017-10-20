@@ -19,6 +19,7 @@ RUN apt-get -y update \
       python-dev \
       python \
       unzip \
+      vim \
     && apt-get -y clean \
     && rm -rf /var/lib/apt/lists/*
 
