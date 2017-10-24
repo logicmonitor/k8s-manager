@@ -52,10 +52,7 @@ RUN curl -L https://storage.googleapis.com/kubernetes-release/release/${KUBERNET
 RUN curl -L https://storage.googleapis.com/kubernetes-helm/helm-${HELM_VERSION}-linux-amd64.tar.gz | tar -xz -C /tmp \
     && mv /tmp/linux-amd64/helm /usr/local/bin/helm \
     && chmod +x /usr/local/bin/* \
-    && rm -rf /tmp/linux-amd64 \
-    && helm init --client-only \
-    && helm repo add logicmonitor-s3 https://s3-us-west-1.amazonaws.com/logicmonitor-helm-charts/stable \
-    && helm repo add logicmonitor https://logicmonitor.github.com/k8s-helm-charts
+    && rm -rf /tmp/linux-amd64
 
 # .bashrc
 RUN echo '{ eval $(ssh-agent); ssh-add; ssh-add ~/.kube/assets/ssh/id_rsa; } &>/dev/null' >> ~/.bashrc
