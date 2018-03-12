@@ -1,42 +1,37 @@
-FROM debian:jessie-slim
+FROM golang:1.9 AS provider
+RUN go get -d github.com/andrewrynhard/terraform-provider-helm
+WORKDIR $GOPATH/src/github.com/andrewrynhard/terraform-provider-helm
+RUN go build -o /tmp/terraform-provider-helm .
+
+FROM debian:buster-slim
 LABEL maintainer="Andrew Rynhard <andrew.rynhard@logicmonitor.com>"
 
-ENV TERRAFORM_VERSION="0.10.6"
-ENV TERRAGRUNT_VERSION="v0.13.14"
-ENV TERRAFORM_PROVIDER_HELM_VERSION="v0.3.2"
-ENV KUBERNETES_VERSION="v1.7.5"
-ENV HELM_VERSION="v2.6.1"
-ENV ANSIBLE_VERSION="2.3.1.0"
+ENV TERRAFORM_VERSION="0.11.3"
+ENV KUBERNETES_VERSION="v1.9.3"
+ENV HELM_VERSION="v2.8.2"
 
 RUN apt-get -y update \
     && apt-get -y install --no-install-recommends \
-      build-essential \
-      ca-certificates \
-      curl \
-      git openssh-client \
-      libffi-dev \
-      libssl-dev \
-      python-dev \
-      python \
-      unzip \
-      vim \
+    ca-certificates \
+    curl \
+    git \
+    gnupg2 \
+    openssh-client \
+    unzip \
+    vim \
     && apt-get -y clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl https://bootstrap.pypa.io/get-pip.py > get-pip.py \
-    && python ./get-pip.py \
-    && pip install --upgrade \
-        cryptography  \
-        cffi \
-        pip \
-    && pip install \
-      ansible==${ANSIBLE_VERSION}
+RUN curl -LO https://download.opensuse.org/repositories/shells:fish:release:2/Debian_8.0/Release.key \
+    && apt-key add - < Release.key \
+    && apt-get update
 
-# Terragrunt
-RUN curl -L -o /usr/local/bin/terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
+RUN echo 'deb http://download.opensuse.org/repositories/shells:/fish:/release:/2/Debian_9.0/ /' > /etc/apt/sources.list.d/fish.list \
+    && apt-get update \
+    && apt-get install -y fish
 
 # Helm Terraform Provider
-RUN curl -L https://github.com/mcuadros/terraform-provider-helm/releases/download/${TERRAFORM_PROVIDER_HELM_VERSION}/terraform-provider-helm_${TERRAFORM_PROVIDER_HELM_VERSION}_linux_amd64.tar.gz | tar -xz --strip-components=1 -C /usr/local/bin terraform-provider-helm_linux_amd64/terraform-provider-helm
+COPY --from=provider /tmp/terraform-provider-helm /usr/local/bin/
 
 # Terraform
 RUN curl -L https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o /tmp/terraform.zip \
